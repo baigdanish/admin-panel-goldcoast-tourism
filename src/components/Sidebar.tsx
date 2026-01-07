@@ -39,6 +39,11 @@ const menuItems = [
     icon: <EventIcon />,
     path: AppRoutes.VOUCHER_GENERATOR,
   },
+  {
+    text: "Manual Booking",
+    icon: <EventIcon />,
+    path: AppRoutes.MANUAL_BOOKING,
+  },
 ];
 
 function Sidebar() {

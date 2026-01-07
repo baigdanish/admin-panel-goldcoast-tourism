@@ -21,8 +21,8 @@ import {
   InputAdornment,
   MenuItem,
   Select,
-  FormControl,
-  InputLabel,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import {
   Edit,
@@ -34,246 +34,288 @@ import {
   People,
 } from "@mui/icons-material";
 
-interface Tour {
+/* =======================
+   RAYNA-LEVEL TOUR MODEL
+======================= */
+export interface Tour {
   id: number;
+
   name: string;
-  destination: string;
-  price: number;
+  city: string;
+  category: string;
+  shortDescription: string;
+
+  adultPrice: number;
+  childPrice: number;
+  infantPrice: number;
+  privatePrice?: number;
+
+  availableDays: string[];
+  timeSlots: string[];
+
   capacity: number;
   booked: number;
-  status: "active" | "inactive" | "upcoming";
-  startDate: string;
-  endDate: string;
+
+  pickupIncluded: boolean;
+  pickupLocations: string[];
+  transferType: "SIC" | "Private";
+
+  cancellationPolicy: string;
+  childPolicy: string;
+  refundPolicy: string;
+
+  status: "draft" | "published" | "inactive";
 }
 
-const TourManagement: React.FC = () => {
-  const [tours, setTours] = useState<Tour[]>([
-    {
-      id: 1,
-      name: "European Adventure",
-      destination: "Paris, Rome, Barcelona",
-      price: 2499,
-      capacity: 50,
-      booked: 42,
-      status: "active",
-      startDate: "2024-04-15",
-      endDate: "2024-04-25",
-    },
-    {
-      id: 2,
-      name: "Asian Explorer",
-      destination: "Tokyo, Bangkok, Bali",
-      price: 3199,
-      capacity: 30,
-      booked: 28,
-      status: "active",
-      startDate: "2024-05-10",
-      endDate: "2024-05-24",
-    },
-    {
-      id: 3,
-      name: "Beach Paradise",
-      destination: "Maldives, Seychelles",
-      price: 4599,
-      capacity: 20,
-      booked: 15,
-      status: "active",
-      startDate: "2024-06-01",
-      endDate: "2024-06-10",
-    },
-    {
-      id: 4,
-      name: "Mountain Trek",
-      destination: "Swiss Alps",
-      price: 1899,
-      capacity: 25,
-      booked: 10,
-      status: "upcoming",
-      startDate: "2024-07-15",
-      endDate: "2024-07-22",
-    },
-    {
-      id: 5,
-      name: "Cultural Journey",
-      destination: "Egypt, Jordan",
-      price: 2899,
-      capacity: 35,
-      booked: 35,
-      status: "inactive",
-      startDate: "2024-03-01",
-      endDate: "2024-03-14",
-    },
-  ]);
+/* =======================
+   EMPTY TOUR TEMPLATE
+======================= */
+const emptyTour: Tour = {
+  id: 0,
+  name: "",
+  city: "",
+  category: "",
+  shortDescription: "",
 
+  adultPrice: 0,
+  childPrice: 0,
+  infantPrice: 0,
+
+  availableDays: [],
+  timeSlots: [],
+
+  capacity: 0,
+  booked: 0,
+
+  pickupIncluded: true,
+  pickupLocations: [],
+  transferType: "SIC",
+
+  cancellationPolicy: "",
+  childPolicy: "",
+  refundPolicy: "",
+
+  status: "draft",
+};
+const dummyTours: Tour[] = [
+  {
+    id: 1,
+    name: "Dubai Desert Safari with BBQ Dinner",
+    city: "Dubai",
+    category: "Desert Safari",
+    shortDescription: "Evening desert safari with dune bashing and BBQ dinner",
+
+    adultPrice: 250,
+    childPrice: 200,
+    infantPrice: 0,
+
+    availableDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    timeSlots: ["Evening"],
+
+    capacity: 50,
+    booked: 32,
+
+    pickupIncluded: true,
+    pickupLocations: ["Deira", "Bur Dubai", "Marina"],
+    transferType: "SIC",
+
+    cancellationPolicy: "Free cancellation up to 24 hours before the tour",
+    childPolicy: "Children under 3 years are free",
+    refundPolicy: "No refund for no-shows",
+
+    status: "published",
+  },
+  {
+    id: 2,
+    name: "Dubai City Tour",
+    city: "Dubai",
+    category: "City Tour",
+    shortDescription: "Half-day guided city tour of Dubai",
+
+    adultPrice: 180,
+    childPrice: 140,
+    infantPrice: 0,
+
+    availableDays: ["Sun", "Mon", "Wed", "Fri"],
+    timeSlots: ["Morning"],
+
+    capacity: 30,
+    booked: 18,
+
+    pickupIncluded: true,
+    pickupLocations: ["Downtown", "JBR", "Business Bay"],
+    transferType: "SIC",
+
+    cancellationPolicy: "Free cancellation up to 12 hours before the tour",
+    childPolicy: "Child price applies from 3–10 years",
+    refundPolicy: "Refund within 7 working days",
+
+    status: "published",
+  },
+  {
+    id: 3,
+    name: "Dhow Cruise Marina Dinner",
+    city: "Dubai",
+    category: "Cruise",
+    shortDescription: "Luxury dinner cruise at Dubai Marina",
+
+    adultPrice: 220,
+    childPrice: 180,
+    infantPrice: 0,
+
+    availableDays: ["Thu", "Fri", "Sat"],
+    timeSlots: ["Evening"],
+
+    capacity: 40,
+    booked: 40,
+
+    pickupIncluded: true,
+    pickupLocations: ["Sharjah", "Ajman", "Dubai"],
+    transferType: "Private",
+
+    cancellationPolicy: "Non-refundable within 24 hours",
+    childPolicy: "Children below 5 years are free",
+    refundPolicy: "Refund only if tour is cancelled by operator",
+
+    status: "inactive",
+  },
+];
+
+const TourManagement: React.FC = () => {
+  const [tours, setTours] = useState<Tour[]>(dummyTours);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingTour, setEditingTour] = useState<Tour | null>(null);
+  const [formData, setFormData] = useState<Tour>(emptyTour);
+  const [tab, setTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+
+  /* =======================
+     HANDLERS
+  ======================= */
+  const handleChange = (field: keyof Tour, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = () => {
+    if (!formData.name || !formData.city) return;
+
+    if (editingTour) {
+      setTours((prev) =>
+        prev.map((t) => (t.id === editingTour.id ? formData : t))
+      );
+    } else {
+      setTours((prev) => [...prev, { ...formData, id: Date.now(), booked: 0 }]);
+    }
+
+    setOpenDialog(false);
+    setEditingTour(null);
+    setFormData(emptyTour);
+    setTab(0);
+  };
 
   const handleEdit = (tour: Tour) => {
     setEditingTour(tour);
+    setFormData(tour);
     setOpenDialog(true);
   };
 
   const handleDelete = (id: number) => {
-    setTours(tours.filter((tour) => tour.id !== id));
+    setTours((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const handleSave = () => {
-    // Save logic here
-    setOpenDialog(false);
-    setEditingTour(null);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "success";
-      case "inactive":
-        return "error";
-      case "upcoming":
-        return "warning";
-      default:
-        return "default";
-    }
-  };
-
-  const filteredTours = tours.filter(
-    (tour) =>
-      tour.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tour.destination.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTours = tours.filter((tour) =>
+    tour.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const statusColor = (status: Tour["status"]) =>
+    status === "published"
+      ? "success"
+      : status === "inactive"
+      ? "error"
+      : "warning";
+
+  /* =======================
+     UI
+  ======================= */
   return (
     <Paper sx={{ p: 3 }}>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-      >
+      <Box display="flex" justifyContent="space-between" mb={2}>
         <Typography variant="h6" fontWeight="bold">
           Tour Management
         </Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => setOpenDialog(true)}
+          onClick={() => {
+            setEditingTour(null);
+            setFormData(emptyTour);
+            setOpenDialog(true);
+          }}
         >
-          Create New Tour
+          Create Tour
         </Button>
       </Box>
 
-      {/* Search and Filter */}
-      <Stack direction="row" spacing={2} mb={3}>
-        <TextField
-          placeholder="Search tours..."
-          size="small"
-          fullWidth
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
-          }}
-        />
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Status</InputLabel>
-          <Select label="Status" defaultValue="all">
-            <MenuItem value="all">All Status</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="inactive">Inactive</MenuItem>
-            <MenuItem value="upcoming">Upcoming</MenuItem>
-          </Select>
-        </FormControl>
-      </Stack>
+      <TextField
+        placeholder="Search tour..."
+        size="small"
+        fullWidth
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ mb: 3 }}
+      />
 
-      {/* Tours Table */}
+      {/* TABLE */}
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Tour Name</TableCell>
-              <TableCell>Destination</TableCell>
+              <TableCell>Tour</TableCell>
+              <TableCell>City</TableCell>
               <TableCell align="center">Price</TableCell>
               <TableCell align="center">Capacity</TableCell>
-              <TableCell align="center">Booked</TableCell>
               <TableCell align="center">Status</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredTours.map((tour) => (
-              <TableRow key={tour.id} hover>
+              <TableRow key={tour.id}>
                 <TableCell>
-                  <Typography fontWeight="medium">{tour.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {tour.startDate} - {tour.endDate}
-                  </Typography>
+                  <Typography fontWeight="bold">{tour.name}</Typography>
+                  <Typography variant="body2">{tour.category}</Typography>
                 </TableCell>
-                <TableCell>{tour.destination}</TableCell>
+                <TableCell>{tour.city}</TableCell>
                 <TableCell align="center">
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <AttachMoney sx={{ fontSize: 16, mr: 0.5 }} />
-                    <Typography fontWeight="bold">{tour.price}</Typography>
-                  </Box>
+                  <AttachMoney fontSize="small" /> {tour.adultPrice}
                 </TableCell>
                 <TableCell align="center">
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <People sx={{ fontSize: 16, mr: 0.5 }} />
-                    <Typography>{tour.capacity}</Typography>
-                  </Box>
-                </TableCell>
-                <TableCell align="center">
-                  <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                  >
-                    <Typography fontWeight="bold">{tour.booked}</Typography>
-                    <Chip
-                      label={`${Math.round(
-                        (tour.booked / tour.capacity) * 100
-                      )}%`}
-                      size="small"
-                      color={
-                        tour.booked === tour.capacity ? "error" : "primary"
-                      }
-                    />
-                  </Box>
+                  <People fontSize="small" /> {tour.capacity}
                 </TableCell>
                 <TableCell align="center">
                   <Chip
                     label={tour.status}
-                    color={getStatusColor(tour.status)}
+                    color={statusColor(tour.status)}
                     size="small"
                   />
                 </TableCell>
                 <TableCell align="center">
-                  <Stack direction="row" spacing={1} justifyContent="center">
-                    <IconButton size="small" onClick={() => handleEdit(tour)}>
-                      <Edit fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small">
-                      <Visibility fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDelete(tour.id)}
-                    >
-                      <Delete fontSize="small" />
-                    </IconButton>
-                  </Stack>
+                  <IconButton onClick={() => handleEdit(tour)}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton>
+                    <Visibility />
+                  </IconButton>
+                  <IconButton onClick={() => handleDelete(tour.id)}>
+                    <Delete />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -281,93 +323,156 @@ const TourManagement: React.FC = () => {
         </Table>
       </TableContainer>
 
-      {/* Create/Edit Dialog */}
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          {editingTour ? "Edit Tour" : "Create New Tour"}
-        </DialogTitle>
+      {/* DIALOG */}
+      <Dialog open={openDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{editingTour ? "Edit Tour" : "Create Tour"}</DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ mt: 2 }}>
-            <Box display="flex" flexWrap="wrap" gap={2}>
-              <Box flex="1 1 48%">
-                <TextField
-                  label="Tour Name"
-                  fullWidth
-                  defaultValue={editingTour?.name}
-                />
-              </Box>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
+            <Tab label="Basic" />
+            <Tab label="Pricing" />
+            <Tab label="Availability" />
+            <Tab label="Pickup" />
+            <Tab label="Policies" />
+          </Tabs>
 
-              <Box flex="1 1 48%">
-                <TextField
-                  label="Destination"
-                  fullWidth
-                  defaultValue={editingTour?.destination}
-                />
-              </Box>
+          {/* BASIC */}
+          {tab === 0 && (
+            <Stack spacing={2}>
+              <TextField
+                label="Tour Name"
+                value={formData.name}
+                onChange={(e) => handleChange("name", e.target.value)}
+              />
+              <TextField
+                label="City"
+                value={formData.city}
+                onChange={(e) => handleChange("city", e.target.value)}
+              />
+              <TextField
+                label="Category"
+                value={formData.category}
+                onChange={(e) => handleChange("category", e.target.value)}
+              />
+              <TextField
+                label="Short Description"
+                multiline
+                rows={3}
+                value={formData.shortDescription}
+                onChange={(e) =>
+                  handleChange("shortDescription", e.target.value)
+                }
+              />
+            </Stack>
+          )}
 
-              <Box flex="1 1 48%">
-                <TextField
-                  label="Price"
-                  type="number"
-                  fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">$</InputAdornment>
-                    ),
-                  }}
-                  defaultValue={editingTour?.price}
-                />
-              </Box>
+          {/* PRICING */}
+          {tab === 1 && (
+            <Stack spacing={2}>
+              <TextField
+                label="Adult Price"
+                type="number"
+                value={formData.adultPrice}
+                onChange={(e) => handleChange("adultPrice", +e.target.value)}
+              />
+              <TextField
+                label="Child Price"
+                type="number"
+                value={formData.childPrice}
+                onChange={(e) => handleChange("childPrice", +e.target.value)}
+              />
+              <TextField
+                label="Infant Price"
+                type="number"
+                value={formData.infantPrice}
+                onChange={(e) => handleChange("infantPrice", +e.target.value)}
+              />
+            </Stack>
+          )}
 
-              <Box flex="1 1 48%">
-                <TextField
-                  label="Capacity"
-                  type="number"
-                  fullWidth
-                  defaultValue={editingTour?.capacity}
-                />
-              </Box>
+          {/* AVAILABILITY */}
+          {tab === 2 && (
+            <Stack spacing={2}>
+              <Select
+                multiple
+                value={formData.availableDays}
+                onChange={(e) => handleChange("availableDays", e.target.value)}
+              >
+                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+                  <MenuItem key={d} value={d}>
+                    {d}
+                  </MenuItem>
+                ))}
+              </Select>
 
-              <Box flex="1 1 48%">
-                <TextField
-                  label="Start Date"
-                  type="date"
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  defaultValue={editingTour?.startDate}
-                />
-              </Box>
+              <Select
+                multiple
+                value={formData.timeSlots}
+                onChange={(e) => handleChange("timeSlots", e.target.value)}
+              >
+                {["Morning", "Afternoon", "Evening"].map((t) => (
+                  <MenuItem key={t} value={t}>
+                    {t}
+                  </MenuItem>
+                ))}
+              </Select>
 
-              <Box flex="1 1 48%">
-                <TextField
-                  label="End Date"
-                  type="date"
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  defaultValue={editingTour?.endDate}
-                />
-              </Box>
+              <TextField
+                label="Capacity"
+                type="number"
+                value={formData.capacity}
+                onChange={(e) => handleChange("capacity", +e.target.value)}
+              />
+            </Stack>
+          )}
 
-              <Box flex="1 1 100%">
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    label="Status"
-                    defaultValue={editingTour?.status || "active"}
-                  >
-                    <MenuItem value="active">Active</MenuItem>
-                    <MenuItem value="inactive">Inactive</MenuItem>
-                    <MenuItem value="upcoming">Upcoming</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-            </Box>
-          </Stack>
+          {/* PICKUP */}
+          {tab === 3 && (
+            <Stack spacing={2}>
+              <Select
+                value={formData.transferType}
+                onChange={(e) => handleChange("transferType", e.target.value)}
+              >
+                <MenuItem value="SIC">SIC</MenuItem>
+                <MenuItem value="Private">Private</MenuItem>
+              </Select>
+              <TextField
+                label="Pickup Locations (comma separated)"
+                value={formData.pickupLocations.join(",")}
+                onChange={(e) =>
+                  handleChange("pickupLocations", e.target.value.split(","))
+                }
+              />
+            </Stack>
+          )}
+
+          {/* POLICIES */}
+          {tab === 4 && (
+            <Stack spacing={2}>
+              <TextField
+                label="Cancellation Policy"
+                multiline
+                rows={2}
+                value={formData.cancellationPolicy}
+                onChange={(e) =>
+                  handleChange("cancellationPolicy", e.target.value)
+                }
+              />
+              <TextField
+                label="Child Policy"
+                multiline
+                rows={2}
+                value={formData.childPolicy}
+                onChange={(e) => handleChange("childPolicy", e.target.value)}
+              />
+              <TextField
+                label="Refund Policy"
+                multiline
+                rows={2}
+                value={formData.refundPolicy}
+                onChange={(e) => handleChange("refundPolicy", e.target.value)}
+              />
+            </Stack>
+          )}
         </DialogContent>
 
         <DialogActions>

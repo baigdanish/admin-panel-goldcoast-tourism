@@ -10,7 +10,7 @@ const Dashboard: React.FC = () => {
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
       <Box mb={4}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
+        <Typography variant="h4" fontWeight="bold" gutterBottom color="primary">
           Travel Management Dashboard
         </Typography>
         <Typography variant="body1" color="text.secondary">
@@ -30,11 +30,11 @@ const Dashboard: React.FC = () => {
       </Box>
 
       {/* Tour Management */}
-      <Box display="flex">
+      {/* <Box display="flex">
         <Box flex="1 1 100%">
           <TourManagement />
         </Box>
-      </Box>
+      </Box> */}
     </Container>
   );
 };

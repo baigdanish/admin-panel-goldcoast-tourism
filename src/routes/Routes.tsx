@@ -2,6 +2,7 @@ import ProtectedRoute from "../components/layouts/protectedLayout";
 import BookingTracker from "../pages/BookingTracker";
 import CustomerManagement from "../pages/CustomerManagement";
 import Dashboard from "../pages/Dashboard";
+import ManualBookingManagement from "../pages/ManualBooking";
 import TourManagement from "../pages/TourManagement";
 import VoucherGenerator from "../pages/VoucherGenerator";
 import AppRoutes from "./appRoutes";
@@ -32,6 +33,10 @@ const APP_ROUTES = [
       {
         path: AppRoutes.TOUR_MANAGEMENT,
         element: <TourManagement />,
+      },
+      {
+        path: AppRoutes.MANUAL_BOOKING,
+        element: <ManualBookingManagement />,
       },
     ],
   },
